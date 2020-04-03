@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="Request" format="xml">
+      <types:example format="xml" element="Request" location="Request.xml"/>
+    </types:type>
+    <types:type name="Employee" format="xml">
+      <types:example format="xml" element="Personnel" location="Employee.xml"/>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#7b957812-e84f-4a6d-a4e6-9e74906982c8">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="Request"/>
+        </types:message>
+      </types:input-event>
+      <types:output-event>
+        <types:message>
+          <types:payload type="Employee"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#580cbb94-f7dc-4efa-80c6-123aa21c1a8e">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="Employee"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

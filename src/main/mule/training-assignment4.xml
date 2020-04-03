@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="69d54fa0-3a06-4b2e-bf40-dd7eeed72c12" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="7a2699e6-5104-4d9b-ae2e-4d180613830b" >
+		<http:request-connection host="localhost" port="8081" connectionIdleTimeout="300000"/>
+	</http:request-config>
+	<flow name="training-assignment4Flow" doc:id="38aa6cdf-8aaf-4af8-8a8c-701410fcfebd" >
+		<http:listener doc:name="Listener" doc:id="38aaa172-4c84-4510-9c9c-518986f60ffc" path="/request" config-ref="HTTP_Listener_config" outputMimeType="application/xml"/>
+		<set-variable value="#[attributes.queryParams.transId]" doc:name="Set Variable" doc:id="35e21de9-a740-4d26-84d5-fe638725e50b" variableName="transactionId"/>
+		<ee:transform doc:name="Transform Message" doc:id="7b957812-e84f-4a6d-a4e6-9e74906982c8" >
+			<ee:message >
+				<ee:set-payload resource="transformnotetobook.dwl" />
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="6fe6feee-f299-4201-af98-8fd93498849a" />
+		<error-handler>
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="e02fff28-84ac-4a36-8446-e75e095c3857" type="STREAM_MAXIMUM_SIZE_EXCEEDED">
+				<ee:transform doc:name="Transform Message" doc:id="45f70f13-226e-400d-9161-cd45108dde35" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "Exception occurred while trying to access"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-continue>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="ea7e663e-686f-4abf-83ce-3f13a1847e55" type="EXPRESSION">
+				<ee:transform doc:name="Transform Message" doc:id="ab5b5b40-602e-480a-983b-b3826be7a02e" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message:"Exception occurred !!!"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="training-assignment4Flow1" doc:id="c24cc72d-af51-4c5a-a6cf-917a07a21c1d">
+		<http:listener doc:name="Listener" doc:id="73f8325c-6c1e-46ed-9488-f37a48b1b080" config-ref="HTTP_Listener_config" path="/employee" />
+		<set-variable value='"1524738"' doc:name="Set Variable" doc:id="aec068b1-b5f3-4a7d-8c5e-70a55a9808f4" variableName="transactionid" />
+		<http:request method="POST" doc:name="Request" doc:id="90c21304-a9d1-4473-8073-45abcb25e6f4" config-ref="HTTP_Request_configuration" path="/request">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Key" : vars.transactionid
+}]]]></http:headers>
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"transId" : vars.transactionid
+}]]]></http:query-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="580cbb94-f7dc-4efa-80c6-123aa21c1a8e" >
+			<ee:message >
+				<ee:set-payload resource="transformnotetobool.dwl" />
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="b8291311-09dd-4aad-a337-592de58fc825" />
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="7a08d585-9de3-4e30-b68d-d7b399ac04aa" type="HTTP:BAD_REQUEST" when="401">
+				<ee:transform doc:name="Transform Message" doc:id="518ba101-1928-4db1-919d-cca539681dfd" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "Provided input is invalid!!!"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-continue>
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="faeb6c86-a083-4912-9a41-18afaf0aca77" type="HTTP:NOT_FOUND" when="404">
+				<ee:transform doc:name="Transform Message" doc:id="6c5fc147-e047-4547-a6b8-1de2ea912845" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message:"Data Not Found error occurred !!!"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+</mule>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+	<wsc:config name="Web_Service_Consumer_Config" doc:name="Web Service Consumer Config" doc:id="28377e39-b49b-4326-9b9a-e0f1dfc64dbb" >
+		<wsc:connection wsdlLocation="BankCustomerService.wsdl" service="BankCustomerService" port="BankCustomerServicePort" address="http://localhost:50000/services/bankCustomer" mtomEnabled="true">
+			<wsc:custom-transport-configuration >
+				<wsc:default-http-transport-configuration timeout="50000" />
+			</wsc:custom-transport-configuration>
+		</wsc:connection>
+	</wsc:config>
+	<flow name="soapexampleFlow" doc:id="6295e097-190b-4f0b-b641-5eae7027e5d4" >
+		<http:listener doc:name="Listener" doc:id="0628eac7-3384-4510-b684-a788ffbe1052" config-ref="HTTP_Listener_config" path="/account" outputMimeType="application/xml"/>
+		<ee:transform doc:name="Transform Message" doc:id="57a87eb5-1307-4418-898b-ab2b1f995f58" >
+			<ee:message >
+				<ee:set-payload ></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<wsc:consume doc:id="cfade173-559e-45ad-b565-4915c363114f" config-ref="Web_Service_Consumer_Config" operation="getAccounts">
+			<wsc:message >
+				<wsc:body ><![CDATA[#[output application/xml
+---
+payload]]]></wsc:body>
+			</wsc:message>
+		</wsc:consume>
+		<logger level="INFO" doc:name="Logger" doc:id="d2d2eab2-eb82-4c2c-8e2f-29862f2edf38" />
+	</flow>
+</mule>
